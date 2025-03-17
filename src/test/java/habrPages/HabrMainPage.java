@@ -26,4 +26,9 @@ public class HabrMainPage {
         LOGIN_DIALOG_TITLE.shouldHave(text("Вход"));
     }
 
+    public void checkIngColorThemAfterChang(){
+
+
+    }
+
 }

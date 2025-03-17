@@ -59,4 +59,11 @@ public class HabrTest {
 
         $$(By.xpath("//nav/a")).get(0).shouldBe(visible);
     }
+
+    @Test
+    public void checkColorThemAfterChang(){
+
+
+        habrPg.checkIngColorThemAfterChang();
+    }
 }
