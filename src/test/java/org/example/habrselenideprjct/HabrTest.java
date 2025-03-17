@@ -7,16 +7,17 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$$;
+import static com.codeborne.selenide.Selenide.*;
 
 public class HabrTest {
 
-    HabrMainPage habrPg = new HabrMainPage();
+    HabrMainPage habrPg;
 
     @BeforeEach
     public void setUp() {
@@ -29,6 +30,11 @@ public class HabrTest {
         Configuration.timeout = 10000; //// Установите таймаут для ожидания элементов
 
         Selenide.open("https://www.habr.com/");
+        WebDriverRunner.getWebDriver().manage().window().maximize();
+        // Максимизирует в полноэкранный режим, можно отключить.
+        // как сделать чтобы для некоторых тестов это не работало?
+
+        habrPg = new HabrMainPage();
     }
 
     @AfterEach
@@ -38,22 +44,21 @@ public class HabrTest {
 
     @Test
     public void clickLoginButton() {
-        WebDriverRunner.getWebDriver().manage().window().maximize(); // Максимизирует в полноэкранный режим, можно отключить.
-        habrPg.loginButton.click();
-        $(By.xpath("//*[@class='shadow-box__title']")).shouldHave(text("Вход"));
+        habrPg.clickingLoginButton();
+        habrPg.checkLoginDialog();
     }
 
     @Test
     public void changingTheThemeToDark() {
-        WebDriverRunner.getWebDriver().manage().window().maximize();
+
         $(By.xpath("//button[contains(@class, 'tm-footer__link')]")).click();// добавить логи, кликаем по настроки языка
 
         $($$(By.xpath("//*[@class='tm-input-radio-labeled__fake']")).get(4)).click();
-        //$x("(//*[@class='tm-input-radio-labeled__fake'])[5]").click();;// добавить логи, кликаем по настроки языка
+        //$x("(//*[@class='tm-input-radio-labeled__fake'])[5]").click(); - это второй варинат записи.
+        // добавить логи, кликаем по настроки языка
 
         $(By.xpath("//button[contains(@type,'submit')]")).click();
 
         $$(By.xpath("//nav/a")).get(0).shouldBe(visible);
-
     }
 }
