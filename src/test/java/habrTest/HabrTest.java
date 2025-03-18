@@ -1,38 +1,33 @@
 package habrTest;
 
 import com.codeborne.selenide.Configuration;
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
 import habrPages.HabrMainPage;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.openqa.selenium.By;
+import org.junit.jupiter.api.*;
 import org.openqa.selenium.chrome.ChromeOptions;
 
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.*;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+
 public class HabrTest {
 
     HabrMainPage habrPg;
 
+    @BeforeAll
+    public static void setUpAll() {
+        Configuration.browserSize = "1280x800";
+    }
+
     @BeforeEach
     public void setUp() {
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--remote-allow-origins=*");
-        Configuration.browser = "chrome";
-        Configuration.webdriverLogsEnabled = true;
-        Configuration.browserCapabilities = options;
-        Configuration.browserSize = "1366x768";
-        Configuration.timeout = 10000; //// Установите таймаут для ожидания элементов
-
-        Selenide.open("https://www.habr.com/");
-        WebDriverRunner.getWebDriver().manage().window().maximize();
-        // Максимизирует в полноэкранный режим, можно отключить.
-        // как сделать чтобы для некоторых тестов это не работало?
-
-        habrPg = new HabrMainPage();
+        // Fix the issue https://github.com/SeleniumHQ/selenium/issues/11750
+        Configuration.browserCapabilities = new ChromeOptions().addArguments("--remote-allow-origins=*");
+        habrPg =page();
+        open("https://habr.com/ru/feed/");
+        $("body").shouldBe(visible);
     }
 
     @AfterEach
@@ -47,23 +42,27 @@ public class HabrTest {
     }
 
     @Test
-    public void changingTheThemeToDark() {
+    public void changingTheThemeRefreshPage() {
 
-        $(By.xpath("//button[contains(@class, 'tm-footer__link')]")).click();// добавить логи, кликаем по настроки языка
-
-        $($$(By.xpath("//*[@class='tm-input-radio-labeled__fake']")).get(4)).click();
-        //$x("(//*[@class='tm-input-radio-labeled__fake'])[5]").click(); - это второй варинат записи.
+      habrPg.hideBannerIfPresent();
+      habrPg.clickLanguageOptionButton();
+      habrPg.selectedDarkTheme();
+      habrPg.doSubmit();
+      habrPg.chekinMainPage();
         // добавить логи, кликаем по настроки языка
-
-        $(By.xpath("//button[contains(@type,'submit')]")).click();
-
-        $$(By.xpath("//nav/a")).get(0).shouldBe(visible);
     }
 
     @Test
     public void checkColorThemAfterChang(){
+        habrPg.hideBannerIfPresent();
+        System.out.println("Светлая тема: " + "атрибут seashell: " + habrPg.getSeashellColor());
+        habrPg.clickLanguageOptionButton();
+        habrPg.selectedDarkTheme();
+        habrPg.doSubmit();
+        sleep(1000);
+        System.out.println("Темная тема: " + "атрибут seashell: " + habrPg.getSeashellColor());
+        Assertions.assertEquals("#080808",habrPg.getSeashellColor(), "Цветовая палитра не изменилась");
+        assertThat(habrPg.getSeashellColor(), is("#080808"));
 
-
-        habrPg.checkIngColorThemAfterChang();
     }
 }
