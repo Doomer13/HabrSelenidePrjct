@@ -1,6 +1,7 @@
 package habrTest;
 
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
 import habrPages.HabrMainPage;
 import org.junit.jupiter.api.*;
@@ -12,27 +13,63 @@ import static com.codeborne.selenide.Selenide.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+import org.openqa.selenium.MutableCapabilities;
+
+import java.io.File;
+import java.io.IOException;
+
 public class HabrTest {
 
     HabrMainPage habrPg;
 
     @BeforeAll
     public static void setUpAll() {
+        // Настройка браузера
         Configuration.browserSize = "1280x800";
+
+        // Настройка ChromeOptions
+        ChromeOptions chromeOptions = new ChromeOptions();
+        chromeOptions.addArguments("--remote-allow-origins=*");
+
+        // Преобразование ChromeOptions в MutableCapabilities
+        MutableCapabilities capabilities = new MutableCapabilities();
+        capabilities.setCapability(ChromeOptions.CAPABILITY, chromeOptions);
+
+        Configuration.browserCapabilities = capabilities;
     }
 
     @BeforeEach
     public void setUp() {
-        // Fix the issue https://github.com/SeleniumHQ/selenium/issues/11750
-        Configuration.browserCapabilities = new ChromeOptions().addArguments("--remote-allow-origins=*");
-        habrPg =page();
+        // Открытие страницы перед каждым тестом
         open("https://habr.com/ru/feed/");
+
+        // Проверка видимости элемента body
         $("body").shouldBe(visible);
+        habrPg =page();
     }
+
 
     @AfterEach
     public void tearDown() {
         WebDriverRunner.closeWebDriver();
+    }
+
+    private boolean deleteScreenshots = true;
+    // Флаг. Включить выключить. По умолчанию включено.
+    @AfterEach
+    public void removeScreenAllShorts() {
+        if (deleteScreenshots) {
+            String screenshotsFolder = "screenshots";
+            File folder = new File(screenshotsFolder);
+
+            if (folder.exists()) {
+                for (File file : folder.listFiles()) {
+                    if (file.getName().endsWith(".png")) {
+                        file.delete();
+                    }
+                }
+            }
+        }
     }
 
     @Test
@@ -65,4 +102,14 @@ public class HabrTest {
         assertThat(habrPg.getSeashellColor(), is("#080808"));
 
     }
+
+    @Test
+    public void comparingScreenshotsAfterChangeTheme() throws IOException {
+        habrPg.hideBannerIfPresent();
+        habrPg.testThemeChange();
+
+    }
+
+
+
 }
